@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "Trail Log",
+    "slug": "trail-log",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "traillog",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F4F3ED",
+    "plugins": [
+      "expo-router"
+    ],
+    "web": {
+      "output": "static"
+    }
+  }
+}
