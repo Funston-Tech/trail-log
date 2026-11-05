@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const STORAGE_KEY = '@trail-log/hikes';
+function storageKey(userId: string) {
+  return `@trail-log/hikes:${userId}`;
+}
 
 export type Rating = 1 | 2 | 3 | 4 | 5;
 
@@ -20,20 +22,20 @@ export function sortHikes(hikes: Hike[]) {
   return [...hikes].sort((a, b) => b.date.localeCompare(a.date));
 }
 
-export async function loadHikes(): Promise<Hike[]> {
-  const saved = await AsyncStorage.getItem(STORAGE_KEY);
+export async function loadHikes(userId: string): Promise<Hike[]> {
+  const saved = await AsyncStorage.getItem(storageKey(userId));
 
   if (saved === null) {
     const examples = exampleHikes();
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(examples));
+    await AsyncStorage.setItem(storageKey(userId), JSON.stringify(examples));
     return examples;
   }
 
   return sortHikes(JSON.parse(saved) as Hike[]);
 }
 
-export async function saveHikes(hikes: Hike[]) {
-  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(hikes));
+export async function saveHikes(userId: string, hikes: Hike[]) {
+  await AsyncStorage.setItem(storageKey(userId), JSON.stringify(hikes));
 }
 
 export function formatHikeDate(date: string) {

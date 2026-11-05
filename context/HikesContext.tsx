@@ -14,7 +14,7 @@ type HikesContextValue = {
 
 const HikesContext = createContext<HikesContextValue | null>(null);
 
-export function HikesProvider({ children }: PropsWithChildren) {
+export function HikesProvider({ children, userId }: PropsWithChildren<{ userId: string }>) {
   const [hikes, setHikes] = useState<Hike[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -25,7 +25,7 @@ export function HikesProvider({ children }: PropsWithChildren) {
     setLoadError(false);
 
     try {
-      const savedHikes = await loadHikes();
+      const savedHikes = await loadHikes(userId);
       hikesRef.current = savedHikes;
       setHikes(savedHikes);
     } catch {
@@ -33,7 +33,7 @@ export function HikesProvider({ children }: PropsWithChildren) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     void reload();
@@ -41,10 +41,10 @@ export function HikesProvider({ children }: PropsWithChildren) {
 
   const commit = useCallback(async (nextHikes: Hike[]) => {
     const sortedHikes = sortHikes(nextHikes);
-    await saveHikes(sortedHikes);
+    await saveHikes(userId, sortedHikes);
     hikesRef.current = sortedHikes;
     setHikes(sortedHikes);
-  }, []);
+  }, [userId]);
 
   const addHike = useCallback(async (draft: HikeDraft) => {
     const hike: Hike = {

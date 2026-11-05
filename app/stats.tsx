@@ -1,4 +1,6 @@
+import { useAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -8,13 +10,29 @@ import { useHikes } from '../context/HikesContext';
 
 export default function StatsScreen() {
   const router = useRouter();
+  const { signOut } = useAuth();
   const { hikes, loading, loadError, reload } = useHikes();
+  const [signingOut, setSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState(false);
   const totalDistance = hikes.reduce((sum, hike) => sum + hike.distanceKm, 0);
   const totalElevation = hikes.reduce((sum, hike) => sum + hike.elevationGainM, 0);
   const longestHike = hikes.reduce<(typeof hikes)[number] | null>(
     (longest, hike) => !longest || hike.distanceKm > longest.distanceKm ? hike : longest,
     null,
   );
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    setSignOutError(false);
+
+    try {
+      await signOut();
+    } catch {
+      setSignOutError(true);
+    } finally {
+      setSigningOut(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -61,6 +79,16 @@ export default function StatsScreen() {
           ) : (
             <Text style={styles.emptyText}>Your longest hike will appear here once you add one.</Text>
           )}
+        </View>
+
+        <View style={styles.accountSection}>
+          <Button
+            disabled={signingOut}
+            label={signingOut ? 'Signing out…' : 'Sign out'}
+            onPress={() => void handleSignOut()}
+            variant="secondary"
+          />
+          {signOutError && <Text style={styles.signOutError}>Sign-out failed. Try again.</Text>}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -182,5 +210,14 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 16,
     lineHeight: 24,
+  },
+  accountSection: {
+    marginTop: 28,
+  },
+  signOutError: {
+    color: colors.danger,
+    fontSize: 14,
+    marginTop: 10,
+    textAlign: 'center',
   },
 });
