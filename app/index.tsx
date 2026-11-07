@@ -25,7 +25,7 @@ export default function HikeListScreen() {
     return (
       <SafeAreaView style={[styles.screen, styles.centered]}>
         <Text style={styles.errorTitle}>Your hikes could not be opened</Text>
-        <Text style={styles.errorText}>Check your phone storage and try again.</Text>
+        <Text style={styles.errorText}>Check that the API is running and try again.</Text>
         <Button label="Try again" onPress={() => void reload()} />
       </SafeAreaView>
     );

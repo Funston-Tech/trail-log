@@ -1,6 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type PropsWithChildren } from 'react';
 
-import { loadHikes, saveHikes, sortHikes, type Hike, type HikeDraft } from '../lib/hikes';
+import {
+  createHike,
+  deleteHike as deleteHikeRequest,
+  loadHikes,
+  sortHikes,
+  updateHike as updateHikeRequest,
+  type Hike,
+  type HikeDraft,
+} from '../lib/hikes';
 
 type HikesContextValue = {
   hikes: Hike[];
@@ -39,30 +47,26 @@ export function HikesProvider({ children }: PropsWithChildren) {
     void reload();
   }, [reload]);
 
-  const commit = useCallback(async (nextHikes: Hike[]) => {
+  const commit = useCallback((nextHikes: Hike[]) => {
     const sortedHikes = sortHikes(nextHikes);
-    await saveHikes(sortedHikes);
     hikesRef.current = sortedHikes;
     setHikes(sortedHikes);
   }, []);
 
   const addHike = useCallback(async (draft: HikeDraft) => {
-    const hike: Hike = {
-      ...draft,
-      id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`,
-    };
-    await commit([...hikesRef.current, hike]);
+    const hike = await createHike(draft);
+    commit([...hikesRef.current, hike]);
     return hike;
   }, [commit]);
 
   const updateHike = useCallback(async (id: string, draft: HikeDraft) => {
-    await commit(hikesRef.current.map((hike) => (
-      hike.id === id ? { ...draft, id } : hike
-    )));
+    const hike = await updateHikeRequest(id, draft);
+    commit(hikesRef.current.map((item) => item.id === id ? hike : item));
   }, [commit]);
 
   const deleteHike = useCallback(async (id: string) => {
-    await commit(hikesRef.current.filter((hike) => hike.id !== id));
+    await deleteHikeRequest(id);
+    commit(hikesRef.current.filter((hike) => hike.id !== id));
   }, [commit]);
 
   return (

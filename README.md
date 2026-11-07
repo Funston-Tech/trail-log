@@ -4,13 +4,26 @@ Trail Log is a small personal hiking journal I built with Expo, React Native, an
 
 Each hike gets a date, distance, elevation gain, a rating out of five, and notes if I have any. Newest hikes are at the top, and there's a stats screen with my totals and my longest hike.
 
-Hikes are saved on the phone with AsyncStorage, so they stick around between launches. On a fresh install it adds three example hikes so the list isn't empty.
+The app talks to its own small Node + Express API in `server/`. For now the API keeps hikes in memory and starts with three example hikes, so changes reset whenever the server restarts.
 
 ## Running it
 
+Start the API in one terminal:
+
 ```sh
+cd server
+npm install
+npm run dev
+```
+
+It listens on port 3001. Then start the app from the project root in another terminal:
+
+```sh
+cp .env.example .env
 npm install
 npx expo start
 ```
 
-Then open it in Expo Go on a phone, or press `w` for the browser. `npm run typecheck` checks the types.
+`EXPO_PUBLIC_API_URL` in `.env` points the app at the API. `http://localhost:3001` works in the browser or a simulator; on a real phone, swap `localhost` for my computer's local IP and restart Expo.
+
+Press `w` for the browser, or open it in Expo Go. `npm run typecheck` (and `npm --prefix server run typecheck`) checks the types.

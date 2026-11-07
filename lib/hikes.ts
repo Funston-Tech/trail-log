@@ -1,6 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const STORAGE_KEY = '@trail-log/hikes';
+const API_URL = process.env.EXPO_PUBLIC_API_URL?.replace(/\/+$/, '');
 
 export type Rating = 1 | 2 | 3 | 4 | 5;
 
@@ -21,19 +19,47 @@ export function sortHikes(hikes: Hike[]) {
 }
 
 export async function loadHikes(): Promise<Hike[]> {
-  const saved = await AsyncStorage.getItem(STORAGE_KEY);
-
-  if (saved === null) {
-    const examples = exampleHikes();
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(examples));
-    return examples;
-  }
-
-  return sortHikes(JSON.parse(saved) as Hike[]);
+  const hikes = await request<Hike[]>('/hikes');
+  return sortHikes(hikes);
 }
 
-export async function saveHikes(hikes: Hike[]) {
-  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(hikes));
+export function createHike(draft: HikeDraft): Promise<Hike> {
+  return request<Hike>('/hikes', {
+    method: 'POST',
+    body: JSON.stringify(draft),
+  });
+}
+
+export function updateHike(id: string, draft: HikeDraft): Promise<Hike> {
+  return request<Hike>(`/hikes/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(draft),
+  });
+}
+
+export async function deleteHike(id: string): Promise<void> {
+  await request<void>(`/hikes/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  if (!API_URL) {
+    throw new Error('EXPO_PUBLIC_API_URL is not configured');
+  }
+
+  const response = await fetch(`${API_URL}${path}`, {
+    ...init,
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Hike request failed with status ${response.status}`);
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  return response.json() as Promise<T>;
 }
 
 export function formatHikeDate(date: string) {
@@ -43,46 +69,4 @@ export function formatHikeDate(date: string) {
     month: 'short',
     day: 'numeric',
   });
-}
-
-function exampleHikes(): Hike[] {
-  return [
-    {
-      id: 'example-ridgeline',
-      name: 'Ridgeline Loop',
-      date: daysAgo(6),
-      distanceKm: 8.6,
-      elevationGainM: 420,
-      rating: 5,
-      notes: 'Clear views from the ridge and a quiet walk back through the trees.',
-    },
-    {
-      id: 'example-fern-gully',
-      name: 'Fern Gully Walk',
-      date: daysAgo(19),
-      distanceKm: 4.2,
-      elevationGainM: 110,
-      rating: 4,
-      notes: 'An easy afternoon walk. The lower trail was muddy after the rain.',
-    },
-    {
-      id: 'example-summit-sunrise',
-      name: 'Summit Sunrise',
-      date: daysAgo(37),
-      distanceKm: 11.3,
-      elevationGainM: 760,
-      rating: 5,
-      notes: 'Started before daylight and reached the top just as the sun came up.',
-    },
-  ];
-}
-
-function daysAgo(days: number) {
-  const date = new Date();
-  date.setDate(date.getDate() - days);
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
 }
