@@ -4,7 +4,12 @@ Trail Log is a small personal hiking journal I built with Expo, React Native, an
 
 Each hike gets a date, distance, elevation gain, a rating out of five, and notes if I have any. Newest hikes are at the top, and there's a stats screen with my totals and my longest hike.
 
-The app talks to its own small Node + Express API in `server/`. For now the API keeps hikes in memory and starts with three example hikes, so changes reset whenever the server restarts.
+The app talks to its own small Node + Express API in `server/`, which also handles accounts directly. All server-side data, including users, sessions, and hikes, is kept in memory, so accounts and changes reset whenever the server restarts. The API starts with three example hikes owned by this demo account:
+
+```text
+Email: demo@example.com
+Password: trailmix
+```
 
 ## Running it
 

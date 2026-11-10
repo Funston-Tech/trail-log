@@ -1,4 +1,4 @@
-const API_URL = process.env.EXPO_PUBLIC_API_URL?.replace(/\/+$/, '');
+import { apiRequest } from './api';
 
 export type Rating = 1 | 2 | 3 | 4 | 5;
 
@@ -18,48 +18,29 @@ export function sortHikes(hikes: Hike[]) {
   return [...hikes].sort((a, b) => b.date.localeCompare(a.date));
 }
 
-export async function loadHikes(): Promise<Hike[]> {
-  const hikes = await request<Hike[]>('/hikes');
+export async function loadHikes(token: string): Promise<Hike[]> {
+  const hikes = await apiRequest<Hike[]>('/hikes', { token });
   return sortHikes(hikes);
 }
 
-export function createHike(draft: HikeDraft): Promise<Hike> {
-  return request<Hike>('/hikes', {
+export function createHike(token: string, draft: HikeDraft): Promise<Hike> {
+  return apiRequest<Hike>('/hikes', {
     method: 'POST',
+    token,
     body: JSON.stringify(draft),
   });
 }
 
-export function updateHike(id: string, draft: HikeDraft): Promise<Hike> {
-  return request<Hike>(`/hikes/${encodeURIComponent(id)}`, {
+export function updateHike(token: string, id: string, draft: HikeDraft): Promise<Hike> {
+  return apiRequest<Hike>(`/hikes/${encodeURIComponent(id)}`, {
     method: 'PUT',
+    token,
     body: JSON.stringify(draft),
   });
 }
 
-export async function deleteHike(id: string): Promise<void> {
-  await request<void>(`/hikes/${encodeURIComponent(id)}`, { method: 'DELETE' });
-}
-
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  if (!API_URL) {
-    throw new Error('EXPO_PUBLIC_API_URL is not configured');
-  }
-
-  const response = await fetch(`${API_URL}${path}`, {
-    ...init,
-    headers: { 'Content-Type': 'application/json' },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Hike request failed with status ${response.status}`);
-  }
-
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
-  return response.json() as Promise<T>;
+export async function deleteHike(token: string, id: string): Promise<void> {
+  await apiRequest<void>(`/hikes/${encodeURIComponent(id)}`, { method: 'DELETE', token });
 }
 
 export function formatHikeDate(date: string) {

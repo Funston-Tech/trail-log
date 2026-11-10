@@ -4,10 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '../components/Button';
 import { colors } from '../constants/theme';
+import { useAuth } from '../context/AuthContext';
 import { useHikes } from '../context/HikesContext';
 
 export default function StatsScreen() {
   const router = useRouter();
+  const { signOut } = useAuth();
   const { hikes, loading, loadError, reload } = useHikes();
   const totalDistance = hikes.reduce((sum, hike) => sum + hike.distanceKm, 0);
   const totalElevation = hikes.reduce((sum, hike) => sum + hike.elevationGainM, 0);
@@ -62,6 +64,8 @@ export default function StatsScreen() {
             <Text style={styles.emptyText}>Your longest hike will appear here once you add one.</Text>
           )}
         </View>
+
+        <Button label="Sign out" variant="secondary" onPress={() => void signOut()} style={styles.signOutButton} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -182,5 +186,8 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 16,
     lineHeight: 24,
+  },
+  signOutButton: {
+    marginTop: 24,
   },
 });
